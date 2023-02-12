@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 using UdpGroupChat.Common;
 using UdpGroupChat.Extensions;
 using System.Data;
+using System.Net.NetworkInformation;
 
 namespace UdpGroupChat.Udp
 {
     internal sealed class ClientCreator
     {
-        private static readonly IPAddress _localHost = IPAddress.Parse("127.0.0.1");
+        //private static readonly IPAddress _localHost = IPAddress.Parse("127.0.0.1");
 
         private int _broadcastPort;
         private int _requestsPort;
@@ -67,7 +68,7 @@ namespace UdpGroupChat.Udp
         public async Task ReceiveRequests()
         {
             using var receiver = new UdpClient(
-                new IPEndPoint(_localHost, _requestsPort));
+                new IPEndPoint(GetLocalIPAddress(), _requestsPort));
             while (true)
             {
                 var result = await receiver.ReceiveAsync();
@@ -131,6 +132,18 @@ namespace UdpGroupChat.Udp
                 Console.WriteLine("Give response in format: [y/n]");
             }
             return false;
+        }
+        public static IPAddress GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip;
+                }
+            }
+            throw new Exception("No network adapters with an IPv4 address in the system!");
         }
 
     }

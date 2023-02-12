@@ -44,9 +44,11 @@ namespace UdpGroupChat.Common
 
             int portToSendRequest = GetPortNumberFromConsole("Enter port number to send request: ");
 
+            IPAddress ipToSendRequest = GetIpAddressFromConsole();
+
             ClientConnecting client = new ClientConnecting(username);
 
-            var response = client.RequestAccessAsync(portToSendRequest);
+            var response = client.RequestAccessAsync(ipToSendRequest, portToSendRequest);
 
             _ = IPEndPoint.TryParse(await response, out var ipEndPoint);
 
@@ -75,21 +77,29 @@ namespace UdpGroupChat.Common
 
         private static IPAddress GetBroadcastIpAdressFromConsole(string? inputMessage=null)
         {
-            inputMessage ??= "Enter IP-address of group: ";
+            while (true)
+            {
+                var result = GetIpAddressFromConsole(inputMessage ?? "Enter IP-address of group: ");
+                if (!result.IsIpInRange(_startIpAddressForBroadcast, _endIpAddressForBroadcast))
+                {
+                    Console.WriteLine("Enter IP-address in range [224.0.0.0]-[239.255.255.255]");
+                }
+                else
+                    return result;
+            }
+        }
+
+        private static IPAddress GetIpAddressFromConsole(string? inputMessage=null)
+        {
+            inputMessage ??= "Enter IP-address: ";
             Console.Write(inputMessage);
-            
+
             while (true)
             {
                 try
                 {
                     string address = Console.ReadLine()!;
-                    var result = IPAddress.Parse(address);
-                    if (!result.IsIpInRange(_startIpAddressForBroadcast, _endIpAddressForBroadcast))
-                    {
-                        Console.WriteLine("Enter IP-address in range [224.0.0.0]-[239.255.255.255]");
-                    }
-                    else
-                        return result;
+                    return IPAddress.Parse(address);
                 }
                 catch (FormatException)
                 {

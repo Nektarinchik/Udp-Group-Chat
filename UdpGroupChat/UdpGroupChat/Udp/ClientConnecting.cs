@@ -13,7 +13,7 @@ namespace UdpGroupChat.Udp
     // TODO: instead of _localHost make GetCurrentIpAddress and try to make it on two computers
     internal sealed class ClientConnecting
     {
-        private static readonly IPAddress _localHost = IPAddress.Parse("127.0.0.1");
+        //private static readonly IPAddress _localHost = IPAddress.Parse("127.0.0.1");
         private async Task<string> WaitResponseAsync(UdpClient receiver)
         {
             string response = "";
@@ -34,12 +34,12 @@ namespace UdpGroupChat.Udp
         {
             User.Name = name;
         }
-        public async Task<string> RequestAccessAsync(int portToRequest)
+        public async Task<string> RequestAccessAsync(IPAddress address, int portToRequest)
         {
             using UdpClient sender = new UdpClient();
             var message = $"User {User.Name} want to get access to broadcast: [y/n]";
             byte[] data = Encoding.UTF8.GetBytes(message);
-            await sender.SendAsync(data, new IPEndPoint(_localHost, portToRequest));
+            await sender.SendAsync(data, new IPEndPoint(address, portToRequest));
             return await WaitResponseAsync(sender);
         }
 
